@@ -37,6 +37,7 @@ body{
   color:var(--ivory);font-family:var(--body);font-weight:500;font-size:calc(var(--u)*4.5);line-height:1.4;font-variant-numeric:lining-nums;
 }
 body.locked{overflow:hidden;height:100vh;height:100svh}
+html{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}   /* no scrollbar appears when the page unlocks, so the column never shifts sideways */
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 a{color:inherit}
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
@@ -217,8 +218,8 @@ figure{margin:0}
 .fn h3,.venue h3,.shot figcaption,.face.back .v{font-weight:600}
 /* ---------- Finish: grain, flash, engraved corners, light that crosses each card as it scrolls ---------- */
 body::after{content:"";position:fixed;top:0;bottom:0;left:50%;width:var(--w);transform:translateX(-50%);z-index:6;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");opacity:.07;mix-blend-mode:overlay}
-#flash{position:fixed;top:0;bottom:0;left:50%;width:var(--w);transform:translateX(-50%);z-index:7;pointer-events:none;opacity:0;background:#1a060c;transition:opacity 2.4s ease}
-#flash.on{opacity:1;transition:opacity 1.4s ease-in-out}
+#flash{position:fixed;top:0;bottom:0;left:50%;width:var(--w);transform:translateX(-50%);z-index:7;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 36%,#fff6dc 0,#f3d590 26%,#b8684a 58%,#3a0c1a 100%);transition:opacity 2.6s ease}
+#flash.on{opacity:1;transition:opacity 1.25s ease-in}
 .gl-on .env-wrap{opacity:0}
 .gl-on .tap{color:var(--ivory);text-shadow:0 1px 6px rgba(0,0,0,.5);opacity:.92}
 #cover{position:fixed;top:0;bottom:0;left:50%;width:var(--w);transform:translateX(-50%);z-index:8;background:#5b1428;transition:opacity 1.6s ease}
@@ -440,7 +441,7 @@ const CONFIG = {
     { name: "Wedding", sub: "The ceremony", when: "Sun 14 Feb · 7:30 AM", place: "The Wedding Hall", dress: "Traditional silks", colour: "Burgundy", hex: "#6a1a2a" },
     { name: "Reception", sub: "Dinner by the sea", when: "Sun 14 Feb · 7:00 PM", place: "Seaside Lawn", dress: "Formal evening", colour: "Velvet wine", hex: "#3f0d1b" }
   ],
-  // Put photo paths in `src` (for example "photo1.jpg") once the files sit beside this page.
+  // Put photo paths in `src` (for example "photos/1.jpg") once the files sit beside this page.
   story: [
     { src: "", caption: "The first hello" },
     { src: "", caption: "The quiet yes" },
@@ -649,8 +650,14 @@ pad.addEventListener("pointermove", e => { if (rx0 === null) return; ringV = (e.
 /* ---------- Gate ---------- */
 const env = $("env"), seal = $("seal"), gate = $("gate"), flash = $("flash"); let opening = false, envAmp = 1;
 function centre(el){ const r = el.getBoundingClientRect(); return [r.left + r.width/2, r.top + r.height/2]; }
+const mainEl = document.querySelector("main");
+function showPage(){                                /* the page is laid in place, fully drawn but clipped to nothing, ready to be uncovered */
+  S.shown = true; mainEl.style.transition = "none"; mainEl.style.opacity = "1"; mainEl.style.transform = "none"; mainEl.style.visibility = "visible";
+  mainEl.style.webkitClipPath = "inset(100% 0 0 0)"; mainEl.style.clipPath = "inset(100% 0 0 0)";
+}
 function openInvite(){
   if (S.open) return;
+  mainEl.style.webkitClipPath = ""; mainEl.style.clipPath = ""; mainEl.style.visibility = ""; setTimeout(() => { mainEl.style.transition = ""; mainEl.style.opacity = ""; mainEl.style.transform = ""; }, 400);
   S.open = true; pageMode = true; if (W.env) W.env.g.visible = false; if (W.key){ W.key.castShadow = false; W.key.position.set(-3.5, 6, 7); W.gateLights(); }
   document.body.classList.remove("locked"); document.body.classList.add("open");
   gate.setAttribute("aria-hidden","true");
@@ -689,8 +696,8 @@ function sizeFoil(){
   let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
   for (let i = 0; i < 900; i++){ fx.fillStyle = "rgba(" + (rnd() > .5 ? "255,250,225," : "90,60,15,") + (rnd()*.22).toFixed(3) + ")"; fx.fillRect(rnd()*fw, rnd()*fh, 1 + rnd()*1.6, 1 + rnd()*1.6); }
   fx.fillStyle = "rgba(60,36,6,.78)"; fx.textAlign = "center"; fx.textBaseline = "middle";
-  fx.font = "italic 600 " + (fw*.095) + "px 'Cormorant Garamond',Georgia,serif"; fx.fillText("Scratch here", fw/2, fh/2 - fw*.03);
-  fx.font = "500 " + (fw*.03) + "px Cinzel,Georgia,serif"; fx.fillText("R U B   S I D E   T O   S I D E", fw/2, fh/2 + fw*.07);
+  fx.font = "italic 600 " + (fw*.095) + "px 'Cormorant Garamond',Georgia,serif"; fx.fillText("Tap to scratch", fw/2, fh/2 - fw*.03);
+  fx.font = "500 " + (fw*.03) + "px Cinzel,Georgia,serif"; fx.fillText("O R   R U B   S I D E   T O   S I D E", fw/2, fh/2 + fw*.07);
   cells = new Uint8Array(GX*GY); hit = 0;
 }
 function scratch(x,y){
@@ -708,8 +715,20 @@ function reveal(){
 }
 let scratching = false;
 const at = e => { const r = foil.getBoundingClientRect(); return [(e.clientX - r.left)*fw/r.width, (e.clientY - r.top)*fh/r.height]; };
-foil.addEventListener("pointerdown", e => { if (!fw) sizeFoil(); scratching = true; try { foil.setPointerCapture(e.pointerId); } catch(_){} last = null; const q = at(e); scratch(q[0], q[1]); });
-foil.addEventListener("pointermove", e => { if (!scratching) return; const q = at(e); scratch(q[0], q[1]); });
+let fdx = 0, fdy = 0, fmoved = 0, autoOn = false;
+function autoScratch(){                              /* a coin drawn back and forth across the foil, top to bottom */
+  if (S.revealed || autoOn) return; if (!fw) sizeFoil(); if (!fw) { reveal(); return; }
+  autoOn = true; last = null; const t0 = performance.now(), rows = 6, dur = 1700; let pu = 0;
+  (function run(){ const u = Math.min(1, (performance.now() - t0)/dur);
+    for (let k = 0; k < 14; k++){ const v = pu + (u - pu)*(k + 1)/14, r = v*rows, row = Math.min(rows - 1, Math.floor(r)), f = r - row, ex = f*f*(3 - 2*f), dirn = row % 2 ? 1 - ex : ex;
+      scratch(fw*(.06 + .88*dirn), fh*(.1 + .8*(row + ex*.9)/rows) + Math.sin(v*40)*fh*.012); }
+    pu = u; if (u < 1) requestAnimationFrame(run); else { last = null; autoOn = false; reveal(); } })();
+}
+foil.addEventListener("pointerdown", e => { fdx = e.clientX; fdy = e.clientY; fmoved = 0; }, true);
+foil.addEventListener("pointermove", e => { fmoved = Math.max(fmoved, Math.hypot(e.clientX - fdx, e.clientY - fdy)); }, true);
+foil.addEventListener("click", () => { if (fmoved < 12) autoScratch(); });
+foil.addEventListener("pointerdown", e => { if (autoOn) return; if (!fw) sizeFoil(); scratching = true; try { foil.setPointerCapture(e.pointerId); } catch(_){} last = null; const q = at(e); scratch(q[0], q[1]); });
+foil.addEventListener("pointermove", e => { if (!scratching || autoOn) return; const q = at(e); scratch(q[0], q[1]); });
 ["pointerup","pointercancel"].forEach(n => foil.addEventListener(n, () => { scratching = false; last = null; }));
 $("revealBtn").addEventListener("click", reveal);
 
@@ -740,7 +759,7 @@ function domFrame(t, dt){
     if (opening) envAmp = Math.max(0, envAmp - dt*2.2);
     env.style.transform = "rotateX(" + ((7 + Math.sin(t*.9)*3)*envAmp).toFixed(2) + "deg) rotateY(" + (Math.sin(t*.62)*9*envAmp).toFixed(2) + "deg) translateY(" + (Math.sin(t*1.25)*1.4*envAmp).toFixed(2) + "%)";
   }
-  if (reduce || !S.open) return;
+  if (reduce || !(S.open || S.shown)) return;      /* the cards take their resting pose while still hidden under the cover, so nothing shifts when it lifts */
   const vh = innerHeight, reads = [], tr = [];
   if (rollP < 1){
     rollT = Math.max(rollT, clamp((vh*.8 - scrollEl.getBoundingClientRect().top)/(vh*.5), 0, 1));
@@ -1064,7 +1083,7 @@ Rope.prototype.step = function(h, grav){
   const p = this.p, q = this.q, n = this.n;
   for (let i = 0; i < n; i++){
     if ((i === 0 && this.pinA) || (i === n-1 && this.pinB)) continue;
-    const x = p[i*2], y = p[i*2+1], vx = (x - q[i*2])*.991, vy = (y - q[i*2+1])*.991;
+    const x = p[i*2], y = p[i*2+1], vx = (x - q[i*2])*(this.damp || .991), vy = (y - q[i*2+1])*(this.damp || .991);
     q[i*2] = x; q[i*2+1] = y; p[i*2] = x + vx; p[i*2+1] = y + vy + grav*h*h;
     if (this.pull && i > n - 5) p[i*2+1] -= this.pull*h*h;
     if (this.hold){ p[i*2] += (this.ax + (this.pose[i*2] - this.pose[0])*this.ps - p[i*2])*this.hold; p[i*2+1] += (this.ay + (this.pose[i*2+1] - this.pose[1])*this.ps - p[i*2+1])*this.hold; }
@@ -1095,20 +1114,20 @@ function ribbon(A, B, mat){                       /* a thin strip between two ma
 function buildEnvelope(M, a, b){
   const g = new T.Group(), E = {g, a, b}, Y = f => b*(1 - 2*f);
   const hinge = Y(.30), mouthTip = Y(.40), Lc = hinge - Y(.415), Le = hinge - Y(.335);
-  const liner = new T.Mesh(new T.PlaneGeometry(2*a, 2*b), M.floral); liner.position.z = -.03; g.add(liner);
+  const liner = new T.Mesh(new T.PlaneGeometry(2*a, 2*b), M.glow); liner.position.z = -.03; g.add(liner); E.liner = liner; E.mouthY = (hinge + mouthTip)/2;
   const top = new T.Mesh(extrude([[-a,b],[a,b],[a,hinge],[-a,hinge]], .01), M.envFlap); top.position.z = .07; g.add(top);
   const sides = new T.Mesh(extrude([[-a,hinge],[-a*.8,hinge],[0,mouthTip],[a*.8,hinge],[a,hinge],[a,-b],[-a,-b]], .012), M.envBody); sides.position.z = .014; g.add(sides);
   const pk = [[a,-b],[-a,-b]], yE = Y(.53), yC = Y(.45);
   for (let i = 0; i <= 56; i++){ const xx = -a + 2*a*i/56, t = Math.abs(xx)/a; pk.push([xx, yE + (yC - yE)*Math.pow(.5 + .5*Math.cos(Math.PI*t), 1.2) + .012*b*Math.sin(Math.PI*t*2)*t]); }
   const pocket = new T.Mesh(extrude(pk, .014), M.envPocket); pocket.position.z = .05; g.add(pocket);
-  const pc = pk.slice(2), pr = ribbon(pc.map(q => [q[0], q[1] - .016*b]), pc.map(q => [q[0], q[1] - .0215*b]), M.pipe); pr.position.z = .082; g.add(pr);
+  const pc = pk.slice(2), pr = ribbon(pc.map(q => [q[0], q[1] - .016*b]), pc.map(q => [q[0], q[1] - .0215*b]), M.pipe); pr.position.z = .082;
   const fl = [[a,0],[-a,0]];
   for (let i = 0; i <= 72; i++){ const xx = -a + 2*a*i/72, t = Math.abs(xx)/a; fl.push([xx, -(Le + (Lc - Le)*Math.pow(1 - t, 1.7) + .018*b*Math.sin(Math.PI*t*2)*Math.sin(Math.PI*t))]); }
   E.flap = new T.Group(); E.flap.position.set(0, hinge, .09);
   const flapP = new T.Mesh(extrude(fl, .014), M.envFlap); E.flap.add(flapP);
   const fc = fl.slice(2), fr = ribbon(fc.map(q => [q[0], q[1] + .016*b]), fc.map(q => [q[0], q[1] + .0215*b]), M.pipe); fr.position.z = .032; E.flap.add(fr);
   const fs = new T.Shape(); fl.forEach((q, i) => i ? fs.lineTo(q[0]*.985, q[1]*.985) : fs.moveTo(q[0]*.985, q[1]*.985)); fs.closePath();
-  const inner = new T.Mesh(new T.ShapeGeometry(fs), M.floralIn); inner.position.z = -.02; E.flap.add(inner);
+  const inner = new T.Mesh(new T.ShapeGeometry(fs), M.lining); inner.position.z = -.02; E.flap.add(inner);
   g.add(E.flap);
   E.hinge = hinge; E.sealR = hinge - Y(.385);
   E.seal = new T.Group(); E.sealS = (.235*a)/.39; E.seal.scale.setScalar(E.sealS); E.seal.position.set(0, hinge - E.sealR, .16);
@@ -1142,6 +1161,9 @@ function buildEnvelope(M, a, b){
     skirt.position.y = -r*3.4; head.castShadow = skirt.castShadow = true; head.userData.cord = skirt.userData.cord = true; tas.add(head, skirt); E.bow.add(tas); return tas; });
   E.knot = new T.Group(); const ball = new T.Mesh(new T.SphereGeometry(r*2.2, 24, 16), M.cord), wrap = new T.Mesh(new T.TorusGeometry(r*2, r*.95, 12, 28), M.cord);
   wrap.rotation.y = Math.PI/2; ball.castShadow = wrap.castShadow = true; ball.userData.cord = wrap.userData.cord = true; E.knot.add(ball, wrap); E.knot.position.z = .1; E.knot.scale.set(1.25, 1, .9); E.bow.add(E.knot);
+  /* one unbroken sheet for the cover: no flap line, no pocket curve, only the paper */
+  top.visible = sides.visible = pocket.visible = E.flap.visible = false;
+  const sheet = new T.Mesh(extrude([[-a,b],[a,b],[a,-b],[-a,-b]], .014), M.envBody); sheet.position.z = .09; g.add(sheet);
   E.full = new T.Mesh(new T.PlaneGeometry(2*a, 2*b), M.floralFull); E.full.position.z = .9; E.full.visible = false; E.full.renderOrder = 5; g.add(E.full);
   g.traverse(o => { if (o.isMesh){ const flat = o === liner || o === inner || o === E.full || o.userData.flat; o.receiveShadow = !flat && !o.userData.cord; o.castShadow = !flat && o !== top; } });
   return E;
@@ -1196,17 +1218,25 @@ function initGL(){
   const sealC = cv(768, 768), sealB = cv(768, 768), floC = cv(900, 1800);
   drawFloral(floC); drawSeal(sealC, false); drawSeal(sealB, true);
   const floT = texFrom(floC, true), floIn = texFrom(floC, true, 1), sealT = texFrom(sealC, true), sealBT = texFrom(sealB, false);
-  const paperEnv = c => new T.MeshStandardMaterial({color:lin(c).multiplyScalar(1.25), map:mot(1.6), roughness:.94, metalness:0, bumpMap:nap(4), bumpScale:.005, envMapIntensity:0, fog:false, toneMapped:false});
+  const lnC = cv(512, 512), lx = lnC.getContext("2d"); lx.fillStyle = "#efefef"; lx.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 512; i++){ const h1 = Math.random(), h2 = Math.random();          /* threads across and down, each a little lighter or darker than its neighbour */
+    lx.fillStyle = h1 > .5 ? "rgba(255,255,255," + ((h1 - .5)*.62).toFixed(3) + ")" : "rgba(0,0,0," + ((.5 - h1)*.34).toFixed(3) + ")"; lx.fillRect(0, i, 512, 1);
+    lx.fillStyle = h2 > .5 ? "rgba(255,255,255," + ((h2 - .5)*.62).toFixed(3) + ")" : "rgba(0,0,0," + ((.5 - h2)*.34).toFixed(3) + ")"; lx.fillRect(i, 0, 1, 512); }
+  for (let i = 0; i < 2600; i++){ lx.fillStyle = "rgba(" + (Math.random() > .5 ? "255,255,255," : "0,0,0,") + (Math.random()*.07).toFixed(3) + ")"; lx.fillRect(Math.random()*512, Math.random()*512, 1 + Math.random()*2, 1); }
+  const linenT = texFrom(lnC, true, 3.2), linenB = texFrom(lnC, false, 3.2);
+  const paperEnv = c => new T.MeshStandardMaterial({color:lin(c).multiplyScalar(1.12), map:linenT, roughness:.94, metalness:0, bumpMap:linenB, bumpScale:.011, envMapIntensity:0, fog:false, toneMapped:false});
   W.texts = [[sealC, sealT, c => drawSeal(c, false)], [sealB, sealBT, c => drawSeal(c, true)]];
   const tw = cv(64, 64), tx = tw.getContext("2d"); tx.fillStyle = "#606060"; tx.fillRect(0,0,64,64); tx.strokeStyle = "#ececec"; tx.lineWidth = 13; tx.shadowColor = "#ececec"; tx.shadowBlur = 5;
   for (let i = -64; i <= 128; i += 32){ tx.beginPath(); tx.moveTo(i, 64); tx.lineTo(i + 64, 0); tx.stroke(); }
   const twT = texFrom(tw, false, 1);
   const M = {
     velA:vel(0x35050f, 0x74203a, .45), velB:vel(0x3b0612, 0x7c2540, .45), velC:vel(0x420815, 0x82283f, .45), gold,
-    envBody:paperEnv(0x5c1228), envPocket:paperEnv(0x66162d), envFlap:paperEnv(0x6e1932),
+    envBody:paperEnv(0x3a0b19), envPocket:paperEnv(0x400d1c), envFlap:paperEnv(0x46101f),
     cord:new T.MeshStandardMaterial({color:lin(0xd8b064), metalness:.6, roughness:.4, bumpMap:twT, bumpScale:.03, envMapIntensity:1.3, emissive:lin(0x3a2a0c), fog:false}),
     pipe:new T.MeshStandardMaterial({color:lin(0xdcb970), metalness:.75, roughness:.38, emissive:lin(0x4a3812), side:T.DoubleSide, fog:false}),
     floral:new T.MeshBasicMaterial({map:floT, toneMapped:false, fog:false}),
+    glow:new T.MeshBasicMaterial({map:(() => { const c = cv(256, 512), x = c.getContext("2d"), g = x.createRadialGradient(128, 185, 0, 128, 185, 330); g.addColorStop(0, "#fff6dc"); g.addColorStop(.22, "#f3d590"); g.addColorStop(.5, "#a8483f"); g.addColorStop(1, "#2a0812"); x.fillStyle = g; x.fillRect(0, 0, 256, 512); return texFrom(c, true); })(), color:0x4d4d4d, toneMapped:false, fog:false}),
+    lining:new T.MeshBasicMaterial({color:0x8f6f33, toneMapped:false, fog:false, side:T.DoubleSide}),
     floralIn:new T.MeshBasicMaterial({map:floIn, toneMapped:false, fog:false, side:T.DoubleSide}),
     floralFull:new T.MeshBasicMaterial({map:floT, toneMapped:false, fog:false, transparent:true, opacity:0, depthTest:false}),
     wax:new T.MeshPhysicalMaterial({color:lin(0xdab26e), metalness:.8, roughness:.36, clearcoat:.4, clearcoatRoughness:.3, envMapIntensity:1.6, fog:false}),
@@ -1301,11 +1331,16 @@ function render(t, dt){
   bgU.uT.value = tt*.5; bgU.uScroll.value = S.scroll; bgU.uTilt.value.set(S.tx, -S.ty); bgU.uBurst.value = S.burst;
   bgU.uRip.value.set(S.rip[0], S.rip[1], S.ripAge); bgU.uMood.value = S.mood;
 
+  if (pageMode) S.settle = Math.min(1, (S.settle || 0) + dt*.4);
+  const stl = S.settle || 0, se = stl*stl*(3 - 2*stl);   /* 0 to 1 over the first moments of the page: hearts grow in, glow and tilt fade up, nothing snaps */
   const show = quality < 3 ? 1 : 2;
   for (let i = 0; i < W.hearts.length; i++){
     const h = W.hearts[i]; h.m.visible = pageMode && i % show === 0; if (!h.m.visible) continue;
-    h.m.position.y = h.y + Math.sin(tt*h.sp*.4 + h.ph)*.1;
-    h.m.rotation.set(h.ax + Math.sin(tt*.12 + h.ph)*.2, tt*h.sp*.2 + h.ph, Math.sin(tt*.1 + h.ph)*.2);
+    h.m.scale.setScalar(h.s*se);
+    /* the hearts in the background drift: a slow rise and fall, a slight sway from side to side, and a lazy turn */
+    const hd = Math.sin(tt*h.sp*.33 + h.ph*1.7)*.16; h.m.position.x += hd - (h.dx || 0); h.dx = hd;
+    h.m.position.y = h.y + Math.sin(tt*h.sp*.45 + h.ph)*.3;
+    h.m.rotation.set(h.ax + Math.sin(tt*.2 + h.ph)*.3, tt*h.sp*.32 + h.ph, Math.sin(tt*.17 + h.ph)*.28);
   }
   for (let i = 0; i < W.parts.length; i++){
     const p = W.parts[i]; if (!p.on) continue;
@@ -1315,6 +1350,7 @@ function render(t, dt){
     m.rotation.x += dt*p.w*.6; m.rotation.y += dt*p.w;
     const k = p.life/p.max; m.scale.setScalar(p.s*Math.min(1, p.life*7)*(1 - k*k*k));
   }
+  W.rings.visible = pageMode;                       /* the rings belong to the last screen and must not show beneath the sliding cover */
   W.rings.rotation.y = tt*.12 + ringA + S.scroll*.5; W.rings.rotation.x = Math.sin(tt*.08)*.12;
 
   let glow = .3 + S.burst*.25;
@@ -1327,29 +1363,43 @@ function render(t, dt){
       const pu = sm(.3, 2.3, o), k1 = 1 - .97*pu, tug = -.07*k*Math.sin(Math.PI*pu);   /* tails are drawn down, loops slip back through the knot */
       if (!E.r1){
         E.knot.position.y = tug; B.cT.by = B.cB.by = B.cL.by = B.cR.by = tug; B.lL.ay = B.lL.by = B.lR.ay = B.lR.by = B.tL.ay = B.tR.ay = tug;
-        B.lL.ps = B.lL.ls = B.lR.ps = B.lR.ls = k1; B.tL.ls = B.tR.ls = 1 + .5*pu; B.tL.pull = B.tR.pull = 26*Math.sin(Math.PI*pu);
+        B.lL.ps = B.lL.ls = B.lR.ps = B.lR.ls = k1; [B.tL, B.tR].forEach(t => { const n = t.n;
+          if (t.L0 === undefined){ let L = 0; for (let i = 0; i < n - 1; i++) L += t.len[i]; t.L0 = L; t.sx = t.p[n*2-2]; t.sy = t.p[n*2-1];
+            const dx = t.pose[n*2-2] - t.pose[0], dy = t.pose[n*2-1] - t.pose[1], d = Math.hypot(dx, dy) || 1; t.dx = dx/d; t.dy = dy/d; }
+          t.ls = 1 + 1.1*pu; t.hold = 0; t.pinB = true;
+          const ext = t.L0*1.1*pu*.97, gx = t.pose[n*2-2] + t.dx*ext, gy = t.pose[n*2-1] + t.dy*ext + tug, bl = sm(0, .4, o);
+          t.bx = t.sx + (gx - t.sx)*bl; t.by = t.sy + (gy - t.sy)*bl; });
       }
       if (o > 2.4 && !E.r1){                                             /* the knot gives way: every end at the centre is let go */
         E.r1 = true; B.lL.mesh.visible = B.lR.mesh.visible = false; B.tL.pull = B.tR.pull = 0;
-        B.tL.pinA = B.tR.pinA = false; B.tL.hold = B.tR.hold = 0; B.cT.pinB = B.cB.pinB = B.cL.pinB = B.cR.pinB = false;
-        B.cL.kick(-.018*k, .006*k, 14); B.cR.kick(.018*k, .006*k, 14); B.cB.kick(.012*k, 0, 22); B.cT.kick(-.004*k, 0, 20); B.tL.kick(-.006*k, 0, 0); B.tR.kick(.006*k, 0, 0);
+        B.tL.hold = B.tR.hold = 0; [B.cL, B.cR, B.cT, B.cB].forEach(rp => { rp.ax0 = rp.ax; rp.ay0 = rp.ay; }); [B.tL, B.tR].forEach(t => { t.bx0 = t.bx; t.by0 = t.by; });   /* every length is freed in the same instant, so the whole cord drops together */ B.cT.pinB = B.cB.pinB = B.cL.pinB = B.cR.pinB = false;
+        E.ropes.forEach(rp => { rp.damp = .965; });                        /* no flicking: the freed ends simply follow where they are drawn */
       }
       const pk = 1 - sm(2.3, 2.9, o); E.knot.scale.set(1.25*pk, pk, .9*pk); E.knot.visible = pk > .01;
-      if (o > 3.2 && !E.r2){ E.r2 = true; B.cL.pinA = B.cR.pinA = B.cB.pinA = false; }      /* then the cord slides off the edges and falls */
-      if (o > 3.6 && !E.r3){ E.r3 = true; B.cT.pinA = false; }
-      if (o > 5 && !E.f1){ E.f1 = true; flash.classList.add("on"); }
-      if (o > 6.3 && !E.f2){ E.f2 = true; openInvite(); flash.classList.remove("on"); }
+      if (E.r1){                                                         /* each length is drawn away off its own edge: left to the left, right to the right, top up, bottom down */
+        const pr = sm(2.45, 3.85, o), e = pr*pr;
+        B.cL.ax = B.cL.ax0 - 1.6*E.a*e; B.cR.ax = B.cR.ax0 + 1.6*E.a*e; B.cT.ay = B.cT.ay0 + (1.35*E.b + .7)*e; B.cB.ay = B.cB.ay0 - (1.55*E.b + .7)*e;
+        const nl = B.cL.n, nr = B.cR.n;                                  /* the bow's tails stay on the ends they were tied from and trail out with them */
+        B.tL.ax = B.cL.p[nl*2-2]; B.tL.ay = B.cL.p[nl*2-1]; B.tR.ax = B.cR.p[nr*2-2]; B.tR.ay = B.cR.p[nr*2-1];
+        if (o > 3.9) E.bow.visible = false;                              /* once clear of the edges the cord is gone for good, and cannot ride back into view with the cover */
+        B.tL.bx = B.tL.bx0 - 1.6*E.a*e; B.tR.bx = B.tR.bx0 + 1.6*E.a*e; B.tL.by = B.tL.by0 - .2*E.a*e; B.tR.by = B.tR.by0 - .2*E.a*e;   /* each tail is still held by its tip, so it travels out taut beside its cord instead of swinging loose */
+      }
+      /* with the cord gone, the whole cover slides up and away, uncovering the invitation lying beneath it */
+      if (o > 3.95 && !E.f1){ E.f1 = true; showPage(); }
+      if (E.f1 && !E.f2){ const sl = sm(4.05, 6.35, o); E.g.position.y = sl*(2*E.b + .5);
+        const edge = ch*(.5 - (E.g.position.y - E.b)/(2*halfH)), cl = "inset(" + Math.max(0, edge).toFixed(1) + "px 0 0 0)"; mainEl.style.webkitClipPath = cl; mainEl.style.clipPath = cl; }
+      if (o > 6.4 && !E.f2){ E.f2 = true; openInvite(); }
     }
     E.simT = Math.min(.05, (E.simT || 0) + dt);
-    while (E.simT >= 1/90){ E.simT -= 1/90; for (let i = 0; i < E.ropes.length; i++) E.ropes[i].step(1/90, -7.5); }
+    while (E.simT >= 1/90){ E.simT -= 1/90; for (let i = 0; i < E.ropes.length; i++) E.ropes[i].step(1/90, E.r1 ? -1.4 : -7.5); }   /* while it is being drawn away the cord is carried by the pull, so it barely sags */
     for (let i = 0; i < E.ropes.length; i++) if (E.ropes[i].mesh.visible) E.ropes[i].write();
     [B.tL, B.tR].forEach((t, i) => { const n = t.n, x1 = t.p[n*2-2], y1 = t.p[n*2-1], x0 = t.p[n*2-6], y0 = t.p[n*2-5];
       E.tas[i].position.set(x1, y1, t.z); E.tas[i].rotation.z = Math.atan2(y1 - y0, x1 - x0) + Math.PI/2; });
     cam.position.set(0, cy, cz); cam.rotation.set(0, 0, 0);
   } else {
-    cam.position.set(S.tx*.3, -S.scroll*scrollK - S.ty*.15, camD); cam.rotation.set(-S.ty*.02, S.tx*.03, 0);
+    cam.position.set(S.tx*.3*se, -S.scroll*scrollK - S.ty*.15*se, camD); cam.rotation.set(-S.ty*.02*se, S.tx*.03*se, 0);
   }
-  if (composer){ bloom.enabled = pageMode && quality < 2; bloom.strength = glow; composer.render(); } else R.render(scene, cam);
+  if (composer){ bloom.enabled = pageMode && quality < 2; bloom.strength = glow*se; composer.render(); } else R.render(scene, cam);
 }
 
 /* ---------- Main loop with adaptive quality ---------- */
