@@ -696,8 +696,8 @@ function sizeFoil(){
   let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
   for (let i = 0; i < 900; i++){ fx.fillStyle = "rgba(" + (rnd() > .5 ? "255,250,225," : "90,60,15,") + (rnd()*.22).toFixed(3) + ")"; fx.fillRect(rnd()*fw, rnd()*fh, 1 + rnd()*1.6, 1 + rnd()*1.6); }
   fx.fillStyle = "rgba(60,36,6,.78)"; fx.textAlign = "center"; fx.textBaseline = "middle";
-  fx.font = "italic 600 " + (fw*.095) + "px 'Cormorant Garamond',Georgia,serif"; fx.fillText("Tap to scratch", fw/2, fh/2 - fw*.03);
-  fx.font = "500 " + (fw*.03) + "px Cinzel,Georgia,serif"; fx.fillText("O R   R U B   S I D E   T O   S I D E", fw/2, fh/2 + fw*.07);
+  fx.font = "italic 600 " + (fw*.095) + "px 'Cormorant Garamond',Georgia,serif"; fx.fillText("Scratch or tap", fw/2, fh/2 - fw*.03);
+  fx.font = "500 " + (fw*.03) + "px Cinzel,Georgia,serif"; fx.fillText("T O   R E V E A L   T H E   D A Y", fw/2, fh/2 + fw*.07);
   cells = new Uint8Array(GX*GY); hit = 0;
 }
 function scratch(x,y){
@@ -727,6 +727,14 @@ function autoScratch(){                              /* a coin drawn back and fo
 foil.addEventListener("pointerdown", e => { fdx = e.clientX; fdy = e.clientY; fmoved = 0; }, true);
 foil.addEventListener("pointermove", e => { fmoved = Math.max(fmoved, Math.hypot(e.clientX - fdx, e.clientY - fdy)); }, true);
 foil.addEventListener("click", () => { if (fmoved < 12) autoScratch(); });
+/* iPhone: a finger moving mostly sideways scratches and is kept from scrolling the page; mostly up or down still scrolls; a plain tap scratches the whole card off */
+let tx0 = 0, ty0 = 0, tmode = 0, tmv = 0;
+foil.addEventListener("touchstart", e => { const t = e.touches[0]; tx0 = t.clientX; ty0 = t.clientY; tmode = 0; tmv = 0; if (!fw) sizeFoil(); }, {passive:true});
+foil.addEventListener("touchmove", e => { if (autoOn || S.revealed) return; const t = e.touches[0], dx = t.clientX - tx0, dy = t.clientY - ty0; tmv = Math.max(tmv, Math.hypot(dx, dy));
+  if (!tmode && tmv > 7) tmode = Math.abs(dx) >= Math.abs(dy)*.8 ? 1 : 2;
+  if (tmode === 1){ if (e.cancelable) e.preventDefault(); const r = foil.getBoundingClientRect(); scratch((t.clientX - r.left)*fw/r.width, (t.clientY - r.top)*fh/r.height); } }, {passive:false});
+foil.addEventListener("touchend", e => { last = null; if (tmv < 10 && !S.revealed){ if (e.cancelable) e.preventDefault(); autoScratch(); } });
+foil.addEventListener("touchcancel", () => { last = null; });
 foil.addEventListener("pointerdown", e => { if (autoOn) return; if (!fw) sizeFoil(); scratching = true; try { foil.setPointerCapture(e.pointerId); } catch(_){} last = null; const q = at(e); scratch(q[0], q[1]); });
 foil.addEventListener("pointermove", e => { if (!scratching || autoOn) return; const q = at(e); scratch(q[0], q[1]); });
 ["pointerup","pointercancel"].forEach(n => foil.addEventListener(n, () => { scratching = false; last = null; }));
