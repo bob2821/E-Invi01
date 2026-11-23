@@ -1159,6 +1159,10 @@ function buildEnvelope(M, a, b){
   E.ropes = Object.keys(B).map(n => B[n]); E.ropes.forEach(rp => E.bow.add(rp.mesh));
   E.tas = [B.tL, B.tR].map(() => { const tas = new T.Group(), head = new T.Mesh(new T.SphereGeometry(r*1.25, 16, 12), M.cord), skirt = new T.Mesh(new T.CylinderGeometry(r*1.05, r*1.9, r*6, 16, 1, true), M.cord);
     skirt.position.y = -r*3.4; head.castShadow = skirt.castShadow = true; head.userData.cord = skirt.userData.cord = true; tas.add(head, skirt); E.bow.add(tas); return tas; });
+  /* no length ever shows a cut end: the top and bottom cords finish in tassels of their own, and a bead covers where each side cord runs into its tail */
+  E.tas2 = [B.cT, B.cB].map(() => { const tas = new T.Group(), head = new T.Mesh(new T.SphereGeometry(r*1.25, 16, 12), M.cord), skirt = new T.Mesh(new T.CylinderGeometry(r*1.05, r*1.9, r*6, 16, 1, true), M.cord);
+    skirt.position.y = -r*3.4; head.castShadow = skirt.castShadow = true; head.userData.cord = skirt.userData.cord = true; tas.add(head, skirt); tas.visible = false; E.bow.add(tas); return tas; });
+  E.caps = [B.cL, B.cR].map(() => { const c = new T.Mesh(new T.SphereGeometry(r*1.3, 16, 12), M.cord); c.castShadow = true; c.userData.cord = true; c.visible = false; E.bow.add(c); return c; });
   E.knot = new T.Group(); const ball = new T.Mesh(new T.SphereGeometry(r*2.2, 24, 16), M.cord), wrap = new T.Mesh(new T.TorusGeometry(r*2, r*.95, 12, 28), M.cord);
   wrap.rotation.y = Math.PI/2; ball.castShadow = wrap.castShadow = true; ball.userData.cord = wrap.userData.cord = true; E.knot.add(ball, wrap); E.knot.position.z = .1; E.knot.scale.set(1.25, 1, .9); E.bow.add(E.knot);
   /* one unbroken sheet for the cover: no flap line, no pocket curve, only the paper */
@@ -1350,7 +1354,7 @@ function render(t, dt){
     m.rotation.x += dt*p.w*.6; m.rotation.y += dt*p.w;
     const k = p.life/p.max; m.scale.setScalar(p.s*Math.min(1, p.life*7)*(1 - k*k*k));
   }
-  W.rings.visible = pageMode;                       /* the rings belong to the last screen and must not show beneath the sliding cover */
+  W.rings.visible = pageMode && S.scroll > 1;       /* the rings live on the last screen: hidden on the first one, so they can never flash behind the names as the page appears */                       /* the rings belong to the last screen and must not show beneath the sliding cover */
   W.rings.rotation.y = tt*.12 + ringA + S.scroll*.5; W.rings.rotation.x = Math.sin(tt*.08)*.12;
 
   let glow = .3 + S.burst*.25;
@@ -1395,6 +1399,9 @@ function render(t, dt){
     for (let i = 0; i < E.ropes.length; i++) if (E.ropes[i].mesh.visible) E.ropes[i].write();
     [B.tL, B.tR].forEach((t, i) => { const n = t.n, x1 = t.p[n*2-2], y1 = t.p[n*2-1], x0 = t.p[n*2-6], y0 = t.p[n*2-5];
       E.tas[i].position.set(x1, y1, t.z); E.tas[i].rotation.z = Math.atan2(y1 - y0, x1 - x0) + Math.PI/2; });
+    [B.cT, B.cB].forEach((t, i) => { const g2 = E.tas2[i]; g2.visible = !!E.r1; if (!g2.visible) return; const n = t.n, x1 = t.p[n*2-2], y1 = t.p[n*2-1], x0 = t.p[n*2-6], y0 = t.p[n*2-5];
+      g2.position.set(x1, y1, t.z); g2.rotation.z = Math.atan2(y1 - y0, x1 - x0) + Math.PI/2; });
+    [B.cL, B.cR].forEach((t, i) => { const c = E.caps[i]; c.visible = !!E.r1; if (c.visible) c.position.set(t.p[t.n*2-2], t.p[t.n*2-1], t.z + .01); });
     cam.position.set(0, cy, cz); cam.rotation.set(0, 0, 0);
   } else {
     cam.position.set(S.tx*.3*se, -S.scroll*scrollK - S.ty*.15*se, camD); cam.rotation.set(-S.ty*.02*se, S.tx*.03*se, 0);
